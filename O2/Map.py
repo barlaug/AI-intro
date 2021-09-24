@@ -25,7 +25,7 @@ class Map_Obj():
         :return: the integer map and string map
         """
         # Read map from provided csv file
-        df = pd.read_csv(path, index_col=None,
+        df = pd.read_csv("O2\\" + path, index_col=None,
                          header=None)  #,error_bad_lines=False)
         # Convert pandas dataframe to numpy array
         data = df.values
@@ -238,3 +238,24 @@ class Map_Obj():
                                y * scale + j] = colors[map[y][x]]
         # Show image
         image.show()
+        
+
+"""
+
+
+
+#A*-algoritme implementasjon
+
+
+
+def main():
+    #kjør a* på map-objekter osvosv
+    print("main")
+    map_obj = Map_Obj(task = 1)
+    map_obj.read_map('Samfundet_map_1.csv')
+    map_obj.get_maps()
+    map_obj.show_map()
+
+if __name__ == '__main__':
+    main()
+"""
