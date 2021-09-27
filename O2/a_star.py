@@ -1,12 +1,13 @@
 import Map
 
 class Node(): #må ha node klasse vettøøøøø
-    def __init__(self,state=None, g=None, h=None, f=None, parent=None, children=None):
+    def __init__(self,state=None, g=None, h=None, f=None, status = None, parent=None, children=None):
         self.state = state #x,y koordinater til noden
         self.g = g
         self.h = h
         self.f = f
-        self.parent = parent #forelderen til noden
+        self.status = status #open or closed
+        self.parent = parent #den beste forelderen til noden
         self.children = children #liste med barn til noden
     
     def print_node(self): #vet ikke om denne er nødvendig
