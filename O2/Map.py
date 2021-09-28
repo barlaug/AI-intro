@@ -25,7 +25,7 @@ class Map_Obj():
         :return: the integer map and string map
         """
         # Read map from provided csv file
-        df = pd.read_csv(path, index_col=None,
+        df = pd.read_csv("O2\\" + path, index_col=None,
                          header=None)  #,error_bad_lines=False)
         # Convert pandas dataframe to numpy array
         data = df.values

@@ -1,8 +1,8 @@
 import Map
 
 class Node(): #må ha node klasse vettøøøøø
-    def __init__(self,state=None, g=None, h=None, f=None, parent=None, children=None):
-        self.state = state #x,y koordinater til noden
+    def __init__(self,state=None, g=None, h=None, f=None, parent=None, children=[]):
+        self.state = tuple(state) #x,y koordinater til noden
         self.g = g
         self.h = h
         self.f = f
@@ -49,7 +49,7 @@ def init_child_node(parent, child_state, h_function): #skjønner ikke hva child-
         children=[]
     )
     child_node.g = parent.g + cost_function(child_node) 
-    child_node.h = h_function(child_node)
+    child_node.h = h_calculation(child_node)
     child_node.f = child_node.g + child_node.h
     return child_node
 
@@ -61,7 +61,8 @@ def propagate_path_improvements(parent, map_obj, h_function):
             child.g = new_g
             child.f = child.g + h_calculation(child.state, map_obj, h_function)
 
-def generate_children(children_list, parent, map_obj, h_function):
+def generate_children(parent, map_obj, h_function):
+    children_list = []
     for adjacent_tiles in [(0, -1), (0, 1), (-1, 0), (1, 0)]: #finner nabo
         child_pos_x = parent.state[0] + adjacent_tiles[0]
         child_pos_y = parent.state[1] + adjacent_tiles[1]
@@ -77,12 +78,16 @@ def generate_children(children_list, parent, map_obj, h_function):
         #sjekke om child_pos er en hindring
         if map_obj.get_cell_value(child_pos) == -1:
             continue
-            
-        child_g = parent.g + cost_function(child_pos, map_obj)
-        child_h = h_calculation(child_pos, map_obj, h_function)
 
-        new_node = Node(child_pos, child_g, child_h, child_g + child_h, parent, []) #lager ny node av child
+        new_node = Node(child_pos) #lager ny node av child
         children_list.append(new_node)
+        return children_list
+
+def attach_child(parent, child, h_function, map_obj):
+        child.parent = parent
+        child.g = parent.g + cost_function(child.state, map_obj)
+        child.h = h_calculation(child.state, map_obj, h_function)
+        child.f = child.g + child.h
 
 
 #A*-algoritme implementasjon
@@ -90,8 +95,10 @@ def a_star(start, goal, h_function, map_obj):
     start_node = init_start_node(start, h_calculation(start, map_obj, h_function))
     OPEN = []
     CLOSED = []
+    memo = {}
 
     OPEN.append(start_node)
+    memo[start_node.state] = start_node
 
     while len(OPEN) > 0: #går helt til vi har funnet goal-node
 
@@ -117,28 +124,26 @@ def a_star(start, goal, h_function, map_obj):
             return path[::-1] #returnerer baklengs path så de er i riktig rekkefølge
 
         #generate children
-        children = []
-        generate_children(children, current_node, map_obj, h_function)
+        children = generate_children(current_node, map_obj, h_function)
 
         for child in children:
+
+            if child.state in memo:
+                child_node = memo[child.state]
+            else:
+                child_node = init_child_node(current_node, child.state, h_function)
+                memo[child_node.state] = child_node
             
-            # child er i closed list
-            for closed_child in CLOSED: #hva om child har bedre g verdi enn samme node som ligger i closed da
-                if child.state == closed_child.state: #gir vel mest mening å sammenligne pos?
-                    continue #da skiper vi denne child-noden og går til neste
+            current_node.children.append(child_node)
 
-            # Child is already in the open list
-            for open_node in OPEN:
-                if child.state == open_node.state and child.g > open_node.g: #hvis vår nye child har høyere g enn den samme noden som ligger i OPEN vil vi ikke gjøre noe
-                    continue #da skiper vi denne child-noden og går til neste
+            if child_node not in OPEN and child_node not in CLOSED:
+                attach_child(current_node, child_node, h_function, map_obj)
+                open.append(child_node)
+            elif current_node.g + cost_function(child_node.state, map_obj) < child_node.g:
+                attach_child(current_node, child_node, h_function, map_obj)
+                if child_node in CLOSED:
+                    propagate_path_improvements(child_node, map_obj, h_function)
 
-            #legger til child i OPEN hvis ikke de er closed eller i open med lavere g verdi
-            OPEN.append(child)
-
-        #loope gjennom barna og sjekke om de er i open-lista, hvis ikke så:
-        #regn ut f-verdien deres og legg til i Open-lista
-        
-        #implementere propagate-path-improvement?
 
 def main():
     print("main")
