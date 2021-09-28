@@ -107,20 +107,22 @@ def a_star(start, goal, h_function, map_obj):
         for child in children:
             
             # child er i closed list
-            for closed_child in CLOSED: #hva om de har bedre g verdi enn samme node som ligger i closed da??
-                if child == closed_child: #hvordam er det å sammenligne child med masse verdier for f, g, h, parent, osv
+            for closed_child in CLOSED: #hva om child har bedre g verdi enn samme node som ligger i closed da
+                if child.state == closed_child.state: #gir vel mest mening å sammenligne pos?
                     continue #da skiper vi denne child-noden og går til neste
 
             # Child is already in the open list
             for open_node in OPEN:
-                if child == open_node and child.g > open_node.g: #hvis vår nye child har dårligere g enn den samme noden som er åpnet tidligere vil vi ikke gjøre noe
+                if child.state == open_node.state and child.g > open_node.g: #hvis vår nye child har høyere g enn den samme noden som ligger i OPEN vil vi ikke gjøre noe
                     continue #da skiper vi denne child-noden og går til neste
 
-            #legger til child i OPEN hvis ikke de er closed
+            #legger til child i OPEN hvis ikke de er closed eller i open med lavere g verdi
             OPEN.append(child)
 
         #loope gjennom barna og sjekke om de er i open-lista, hvis ikke så:
-        #regn ut f-verdien deres og legg til i Open-lista            
+        #regn ut f-verdien deres og legg til i Open-lista
+        
+        #implementere propagate-path-improvement?
 
 
 def main():
