@@ -1,12 +1,11 @@
 import Map
 
 class Node(): #må ha node klasse vettøøøøø
-    def __init__(self,state=None, g=None, h=None, f=None, status = None, parent=None, children=None):
+    def __init__(self,state=None, g=None, h=None, f=None, parent=None, children=None):
         self.state = state #x,y koordinater til noden
         self.g = g
         self.h = h
         self.f = f
-        self.status = status #open or closed
         self.parent = parent #den beste forelderen til noden
         self.children = children #liste med barn til noden
     
@@ -30,7 +29,7 @@ def cost_function(to_state, map_obj): #tror kansekj vi trenger denne i del 2
 
 def is_at_goal(state, map_obj): #sjekker om current node er i goal_pos
     goal = map_obj.get_goal_pos()
-    return (state[0] == goal[0]) and (state[1] == goal[1])
+    return (state[0] == goal[0]) and (state[1] == goal[1]) #må ikke funk vite hvilken node det er?
 
 def init_start_node(start_state, h_function):
     start_node = Node(
@@ -43,7 +42,7 @@ def init_start_node(start_state, h_function):
     start_node.f = start_node.h + start_node.g
     return start_node
 
-def init_child_node(parent, child_state, h_function):
+def init_child_node(parent, child_state, h_function): #skjønner ikke hva child-state skal være
     child_node = Node(
         parent=parent,
         state=child_state,
@@ -86,17 +85,42 @@ def a_star(start, goal, h_function, map_obj):
                 now = now.parent
             return path[::-1] #returnerer baklengs path så de er i riktig rekkefølge
 
-        
-        #mangler å:
-        #for noden vi er på nå, lag barn rundt og legg de til i childre-liste
-        #loope gjennom barna og sjekke om de er i open-lista, hvis ikke så:
-        #regn ut f-verdien deres og legg til i Open-lista
+        #generate children
+        children = []
+        for adjacent_tiles in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]: #finner nabo
+            child_pos = (current_node.state[0] + adjacent_tiles[0], current_node.state[1] + adjacent_tiles[1])
             
+            #sjekke at child_pos er innenfor grensene på map_obj
+            if child_pos[0] > (len(map_obj) - 1) or child_pos[0] < 0 or child_pos[1] > (len(len(map_obj-1) - 1)) or child_pos[1] < 0: #har ikke snøring på hvordan jeg finner str på map_obj,
+                continue #hopper av resten av koden for-løkken skal kjøre og begynner på neste iterasjon
+            
+            #sjekke at child_pos ikke er en hindring
+            if map_obj.get_cell_value(child_pos) == -1:
+                continue
+            
+            child_g = current_node.g + map_obj.get_cell_value(child_pos)
+            child_h = h_calculation(child_pos, map_obj, h_function)
 
+            new_node = Node(child_pos, child_g, child_h, child_g + child_h, current_node, []) #lager ny node av child
+            children.append(new_node)
 
+        for child in children:
+            
+            # child er i closed list
+            for closed_child in CLOSED: #hva om de har bedre g verdi enn samme node som ligger i closed da??
+                if child == closed_child: #hvordam er det å sammenligne child med masse verdier for f, g, h, parent, osv
+                    continue #da skiper vi denne child-noden og går til neste
 
+            # Child is already in the open list
+            for open_node in OPEN:
+                if child == open_node and child.g > open_node.g: #hvis vår nye child har dårligere g enn den samme noden som er åpnet tidligere vil vi ikke gjøre noe
+                    continue #da skiper vi denne child-noden og går til neste
 
+            #legger til child i OPEN hvis ikke de er closed
+            OPEN.append(child)
 
+        #loope gjennom barna og sjekke om de er i open-lista, hvis ikke så:
+        #regn ut f-verdien deres og legg til i Open-lista            
 
 
 def main():
