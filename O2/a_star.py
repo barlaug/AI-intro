@@ -54,6 +54,8 @@ def init_child_node(parent, child_state, h_function): #skjønner ikke hva child-
     return child_node
 
 
+print("hei")
+
 #A*-algoritme implementasjon
 def a_star(start, goal, h_function, map_obj):
     start_node = init_start_node(start, h_calculation(start, map_obj, h_function))
@@ -93,8 +95,8 @@ def a_star(start, goal, h_function, map_obj):
             #sjekke at child_pos er innenfor grensene på map_obj
             if child_pos[0] > (len(map_obj) - 1) or child_pos[0] < 0 or child_pos[1] > (len(len(map_obj-1) - 1)) or child_pos[1] < 0: #har ikke snøring på hvordan jeg finner str på map_obj,
                 continue #hopper av resten av koden for-løkken skal kjøre og begynner på neste iterasjon
-            
-            #sjekke at child_pos ikke er en hindring
+
+            #sjekke om child_pos er en hindring
             if map_obj.get_cell_value(child_pos) == -1:
                 continue
             
