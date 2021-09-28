@@ -53,8 +53,37 @@ def init_child_node(parent, child_state, h_function): #skjønner ikke hva child-
     child_node.f = child_node.g + child_node.h
     return child_node
 
+def propagate_path_improvements(parent, map_obj, h_function):
+    for child in parent.children:
+        new_g = parent.g + cost_function(child.state)
+        if new_g < child.g:
+            child.parent = parent
+            child.g = new_g
+            child.f = child.g + h_calculation(child.state, map_obj, h_function)
 
-print("hei")
+def generate_children(children_list, parent, map_obj, h_function):
+    for adjacent_tiles in [(0, -1), (0, 1), (-1, 0), (1, 0)]: #finner nabo
+        child_pos_x = parent.state[0] + adjacent_tiles[0]
+        child_pos_y = parent.state[1] + adjacent_tiles[1]
+        
+        (w, h) = map_obj.int_map.shape 
+
+        #sjekke at child_pos er innenfor grensene på map_obj
+        if (child_pos_x < 0) or (child_pos_x > w) or (child_pos_y < 0) or (child_pos_y < h):
+            continue #hopper av resten av koden for-løkken skal kjøre og begynner på neste iterasjon
+        
+        child_pos = (child_pos_x, child_pos_y)
+
+        #sjekke om child_pos er en hindring
+        if map_obj.get_cell_value(child_pos) == -1:
+            continue
+            
+        child_g = parent.g + cost_function(child_pos, map_obj)
+        child_h = h_calculation(child_pos, map_obj, h_function)
+
+        new_node = Node(child_pos, child_g, child_h, child_g + child_h, parent, []) #lager ny node av child
+        children_list.append(new_node)
+
 
 #A*-algoritme implementasjon
 def a_star(start, goal, h_function, map_obj):
@@ -89,22 +118,7 @@ def a_star(start, goal, h_function, map_obj):
 
         #generate children
         children = []
-        for adjacent_tiles in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]: #finner nabo
-            child_pos = (current_node.state[0] + adjacent_tiles[0], current_node.state[1] + adjacent_tiles[1])
-            
-            #sjekke at child_pos er innenfor grensene på map_obj
-            if child_pos[0] > (len(map_obj) - 1) or child_pos[0] < 0 or child_pos[1] > (len(len(map_obj-1) - 1)) or child_pos[1] < 0: #har ikke snøring på hvordan jeg finner str på map_obj,
-                continue #hopper av resten av koden for-løkken skal kjøre og begynner på neste iterasjon
-
-            #sjekke om child_pos er en hindring
-            if map_obj.get_cell_value(child_pos) == -1:
-                continue
-            
-            child_g = current_node.g + map_obj.get_cell_value(child_pos)
-            child_h = h_calculation(child_pos, map_obj, h_function)
-
-            new_node = Node(child_pos, child_g, child_h, child_g + child_h, current_node, []) #lager ny node av child
-            children.append(new_node)
+        generate_children(children, current_node, map_obj, h_function)
 
         for child in children:
             
@@ -125,7 +139,6 @@ def a_star(start, goal, h_function, map_obj):
         #regn ut f-verdien deres og legg til i Open-lista
         
         #implementere propagate-path-improvement?
-
 
 def main():
     print("main")
