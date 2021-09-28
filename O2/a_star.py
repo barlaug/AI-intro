@@ -27,9 +27,8 @@ def cost_function(to_state, map_obj): #tror kansekj vi trenger denne i del 2
     return map_obj.get_cell_value(to_state)
 
 
-def is_at_goal(state, map_obj): #sjekker om current node er i goal_pos
-    goal = map_obj.get_goal_pos()
-    return (state[0] == goal[0]) and (state[1] == goal[1]) #må ikke funk vite hvilken node det er?
+def is_at_goal(state, goal_state): #sjekker om current node er i goal_pos
+    return (state[0] == goal_state[0]) and (state[1] == goal_state[1]) #må ikke funk vite hvilken node det er?
 
 def init_start_node(start_state, h_function):
     start_node = Node(
@@ -42,14 +41,14 @@ def init_start_node(start_state, h_function):
     start_node.f = start_node.h + start_node.g
     return start_node
 
-def init_child_node(parent, child_state, h_function): #skjønner ikke hva child-state skal være
+def init_child_node(parent, child_state, h_function, map_obj): #skjønner ikke hva child-state skal være
     child_node = Node(
         parent=parent,
         state=child_state,
         children=[]
     )
-    child_node.g = parent.g + cost_function(child_node) 
-    child_node.h = h_calculation(child_node)
+    child_node.g = parent.g + cost_function(child_node.state, map_obj) 
+    child_node.h = h_calculation(child_node.state, map_obj, h_function)
     child_node.f = child_node.g + child_node.h
     return child_node
 
@@ -66,22 +65,22 @@ def generate_children(parent, map_obj, h_function):
     for adjacent_tiles in [(0, -1), (0, 1), (-1, 0), (1, 0)]: #finner nabo
         child_pos_x = parent.state[0] + adjacent_tiles[0]
         child_pos_y = parent.state[1] + adjacent_tiles[1]
-        
+        print("child pos x,y:", child_pos_x, child_pos_y)
         (w, h) = map_obj.int_map.shape 
-
+        print("w,h:", w,h)
         #sjekke at child_pos er innenfor grensene på map_obj
-        if (child_pos_x < 0) or (child_pos_x > w) or (child_pos_y < 0) or (child_pos_y < h):
+        if (child_pos_x < 0) or (child_pos_x > w) or (child_pos_y < 0) or (child_pos_y > h):
             continue #hopper av resten av koden for-løkken skal kjøre og begynner på neste iterasjon
         
-        child_pos = (child_pos_x, child_pos_y)
-
+        child_pos = tuple((child_pos_x, child_pos_y))
+        print("child_pos. ", child_pos)
         #sjekke om child_pos er en hindring
         if map_obj.get_cell_value(child_pos) == -1:
             continue
 
         new_node = Node(child_pos) #lager ny node av child
         children_list.append(new_node)
-        return children_list
+    return children_list
 
 def attach_child(parent, child, h_function, map_obj):
         child.parent = parent
@@ -112,33 +111,32 @@ def a_star(start, goal, h_function, map_obj):
         OPEN.pop(current_i)
         CLOSED.append(current_node)
         
-
         #sjekker om vi har truffet mål
-        if is_at_goal(current_node.state, map_obj):
+        if is_at_goal(current_node.state, goal):
             #vi skal nå gå bakover langs alle barn->forelder->besteforelder til vi er ved startnoden og legge til alle koordinater i path slik at vi kan returnere den
             path = [] 
             now = current_node
-            while now is not None: #det vil si at vi enda ikke har kommer til startnoden sin hadde en parent-peker til None
+            while now is not None: #det vil si at vi enda ikke har kommet til startnoden sin hadde en parent-peker til None
                 path.append(now.state)
                 now = now.parent
             return path[::-1] #returnerer baklengs path så de er i riktig rekkefølge
-
         #generate children
         children = generate_children(current_node, map_obj, h_function)
 
-        for child in children:
+        print("children: ", children)
 
+        for child in children:
             if child.state in memo:
                 child_node = memo[child.state]
             else:
-                child_node = init_child_node(current_node, child.state, h_function)
+                child_node = init_child_node(current_node, child.state, h_function, map_obj)
                 memo[child_node.state] = child_node
             
             current_node.children.append(child_node)
 
             if child_node not in OPEN and child_node not in CLOSED:
                 attach_child(current_node, child_node, h_function, map_obj)
-                open.append(child_node)
+                OPEN.append(child_node)
             elif current_node.g + cost_function(child_node.state, map_obj) < child_node.g:
                 attach_child(current_node, child_node, h_function, map_obj)
                 if child_node in CLOSED:
@@ -156,8 +154,10 @@ def main():
     goal_state = map_obj.get_goal_pos()
     h_function_type = "manhattan"
     solution = a_star(start_state, goal_state, h_function_type, map_obj) #astar returnerer en liste med koordinater til korteste vei
+    print(solution)
     for _ in solution:
         map_obj.set_cell_value(_,"O") #maler mappet med veien vi fant
+    #map_obj.set_cell_value((3, 18),"O")
 
     map_obj.show_map()
 
