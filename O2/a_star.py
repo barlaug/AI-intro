@@ -1,6 +1,6 @@
 import Map
 
-### Av Eirik Runde Barlaug og Jon Torgeir Grini ifm. AI-intro øving 2. Overkommentert for stud-ass' skyld.
+### Av Eirik Runde Barlaug og Jon Torgeir Grini (Gruppe 256) ifm. AI-intro øving 2. Overkommentert for stud-ass' skyld.
 
 
 #Oppretter en class Node 
