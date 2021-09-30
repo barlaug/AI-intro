@@ -163,7 +163,7 @@ def a_star(start, goal, h_function, map_obj):
                 #dersom child_node ligger i CLOSED allerede må vi sjekke om vi kan forbedre g-verdien til child_node og 
                 # andre etterkommer via veien gjennom current_node
                 if child_node in CLOSED: 
-                    propagate_path_improvements(child_node, map_obj, h_function) #hvis den også er i closed så?? hihi
+                    propagate_path_improvements(child_node, map_obj, h_function)
 
 
 def main():
