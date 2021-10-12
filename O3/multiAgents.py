@@ -12,6 +12,7 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
+from pacman import GameState
 from util import manhattanDistance
 from game import Directions
 import random, util
@@ -135,7 +136,45 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #util.raiseNotDefined()
+
+        #make a call to minimax()
+        action, score = self.minimax(self.depth, self.index, gameState, gameState.getNumAgents())
+        return action
+
+    def minimax(self, depth, agentIndex, gameState, nr_of_agents):
+
+        #if we have gone through all the agents we decrement the depth and reset the agent index
+        if agentIndex >= nr_of_agents:
+            agentIndex = 0
+            depth -= 1
+
+        #if we have searched through all the layers of nodes or game is over we return with no action and current score 
+        if depth == 0 or gameState.isWin() or gameState.isLose():
+            return None, self.evaluationFunction(gameState)
+        
+        best_action = None
+        legal_actions = gameState.getLegalActions(agentIndex)
+        
+        if agentIndex == 0: #we have maximizing player (pacman)
+            best_score = float('-inf')
+            for action in legal_actions: #we check every action for the current game state to find the best move
+                gs_child = gameState.generateSuccessor(agentIndex, action) #next GameState given an action and agent
+                temp, score = self.minimax(depth, agentIndex+1, gs_child, nr_of_agents) #recursive call to search through all the layers
+                #if our new score is higher than any previous score found for maximizing player we want to update our variables best_score and best_action
+                if score > best_score:
+                    best_score = score
+                    best_action = action      
+        else: #then we have minimizing player (ghost)
+            best_score = float('inf')
+            for action in legal_actions: #we check every action for a given ghost-state to find the best move
+                gs_child = gameState.generateSuccessor(agentIndex, action) #next GameState given a action and agent
+                temp, score = self.minimax(depth, agentIndex+1, gs_child, nr_of_agents) #recursive call to search through all the layers
+                #if our new score is lower than any previous score found for minimizing player we want to update our variables best_score and best_action
+                if score < best_score:
+                    best_score = score
+                    best_action = action
+        return best_action, best_score
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -147,8 +186,58 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #util.raiseNotDefined()
 
+        #make a call to minimaxalphabeta()
+        #we set alpha to -inf and beta to +inf at initialization
+        action, score = self.minimaxalphabeta(self.depth, 0, gameState, gameState.getNumAgents(), float('-inf'), float('inf'))
+        return action
+
+    def minimaxalphabeta(self, depth, agentIndex, gameState, nr_of_agents, alpha, beta):
+
+        #if we have gone through all the agents we decrement the depth and reset the agent index
+        if agentIndex >= nr_of_agents:
+            agentIndex = 0
+            depth -= 1
+
+        #if we have searched through all the layers of nodes or game is over we return with no action and current score 
+        if depth == 0 or gameState.isWin() or gameState.isLose():
+            return None, self.evaluationFunction(gameState)
+        
+        best_action = None
+        legal_actions = gameState.getLegalActions(agentIndex)
+
+        if agentIndex == 0: #we have maximizing player (pacman)
+            best_score = float('-inf')
+            for action in legal_actions: #we check every action for the current game state to find the best move
+                gs_child = gameState.generateSuccessor(agentIndex, action) #next GameState given an action and agent
+                temp, score = self.minimax(depth, agentIndex+1, gs_child, nr_of_agents, alpha, beta) #recursive call to search through all the layers
+                #if our new score is higher than any previous score found for maximizing player we want to update our variables best_score and best_action
+                if score > best_score:
+                    best_score = score
+                    best_action = action
+                #if the new score is higher than any previous score found among the pacmans successor, we must update alpha with this value
+                alpha = max(alpha, score)
+                #if beta is less than alpha, then pacman has already found another action which is guaranteed to be better than the current action
+                #we can then prune the tree
+                if beta < alpha:
+                    break
+        else: #then we have minimizing player (ghost)
+            best_score = float('inf')
+            for action in legal_actions: #we check every action for a given ghost-state to find the best move
+                gs_child = gameState.generateSuccessor(agentIndex, action) #next GameState given a action and agent
+                temp, score = self.minimax(depth, agentIndex+1, gs_child, nr_of_agents, alpha, beta) #recursive call to search through all the layers
+                if score < best_score:
+                    best_score = score
+                    best_action = action
+                #if the new score is lower than any previous score found among the ghosts successor, we must update beta with this value 
+                beta = min(beta, score)
+                #if beta is less than alpha, then the ghost has already found another action which is guaranteed to be better than the current action
+                #we can then prune the tree
+                if beta < alpha:
+                    break
+        return best_action, best_score
+    
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
