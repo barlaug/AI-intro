@@ -211,7 +211,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             best_score = float('-inf')
             for action in legal_actions: #we check every action for the current game state to find the best move
                 gs_child = gameState.generateSuccessor(agentIndex, action) #next GameState given an action and agent
-                temp, score = self.minimax(depth, agentIndex+1, gs_child, nr_of_agents, alpha, beta) #recursive call to search through all the layers
+                temp, score = self.minimaxalphabeta(depth, agentIndex+1, gs_child, nr_of_agents, alpha, beta) #recursive call to search through all the layers
                 #if our new score is higher than any previous score found for maximizing player we want to update our variables best_score and best_action
                 if score > best_score:
                     best_score = score
@@ -226,7 +226,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             best_score = float('inf')
             for action in legal_actions: #we check every action for a given ghost-state to find the best move
                 gs_child = gameState.generateSuccessor(agentIndex, action) #next GameState given a action and agent
-                temp, score = self.minimax(depth, agentIndex+1, gs_child, nr_of_agents, alpha, beta) #recursive call to search through all the layers
+                temp, score = self.minimaxalphabeta(depth, agentIndex+1, gs_child, nr_of_agents, alpha, beta) #recursive call to search through all the layers
                 if score < best_score:
                     best_score = score
                     best_action = action
