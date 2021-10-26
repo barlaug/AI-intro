@@ -84,6 +84,12 @@ class CSP:
         # Call backtrack with the partial assignment 'assignment'
         return self.backtrack(assignment)
 
+    def assignment_is_complete(self, assignment):
+        for key, value in assignment.items(): #If assignment is complete
+            if len(value) != 1: 
+                return False
+        return True
+
     def backtrack(self, assignment):
         """The function 'Backtrack' from the pseudocode in the
         textbook.
@@ -108,8 +114,9 @@ class CSP:
         assignments and inferences that took place in previous
         iterations of the loop.
         """
-        # TODO: IMPLEMENT THIS
-        pass
+        #Denne har vi implementert
+        if assignment_is_complete(assignment):
+            return assignment
 
     def select_unassigned_variable(self, assignment):
         """The function 'Select-Unassigned-Variable' from the pseudocode
@@ -117,8 +124,10 @@ class CSP:
         in 'assignment' that have not yet been decided, i.e. whose list
         of legal values has a length greater than one.
         """
-        # TODO: IMPLEMENT THIS
-        pass
+        #Denne har vi implementert
+        for key,value in assignment.items():
+            if len(value) > 1:
+                return key
 
     def inference(self, assignment, queue):
         """The function 'AC-3' from the pseudocode in the textbook.
