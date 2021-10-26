@@ -135,8 +135,18 @@ class CSP:
         the lists of legal values for each undecided variable. 'queue'
         is the initial queue of arcs that should be visited.
         """
-        # TODO: IMPLEMENT THIS
-        pass
+
+        #et eller annet sted trenger vi deep copy av assignment
+        assignment_copy = copy.deepcopy(assignment)
+        while len(queue):
+            (x_i, x_j) = queue.pop()
+            if revise(assignment, x_i, x_j):
+                if len(self.domains[x_i]) == 0:
+                    return False
+                for x_k in get_all_neighboring_arcs(x_i):
+                    if x_k != x_j:
+                        queue.append((x_k, x_i)) #skulle man brukt en av de utleverte func her?
+        return True
 
     def revise(self, assignment, i, j):
         """The function 'Revise' from the pseudocode in the textbook.
@@ -147,8 +157,14 @@ class CSP:
         between i and j, the value should be deleted from i's list of
         legal values in 'assignment'.
         """
-        # TODO: IMPLEMENT THIS
-        pass
+        #gjort no greier her og
+        revised = False
+        for x in self.domains[i]:
+            for y in self.domains[j]:
+                if len(self.constraints[x][y]) == 0:
+                    self.domains[i].remove(x)
+                    revised = True
+        return revised
 
 
 def create_map_coloring_csp():
@@ -211,3 +227,8 @@ def print_sudoku_solution(solution):
         print("")
         if row == 2 or row == 5:
             print('------+-------+------')
+
+def main():
+    create_map_coloring_csp()
+
+main()
