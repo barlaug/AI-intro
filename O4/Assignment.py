@@ -92,7 +92,11 @@ class CSP:
         return self.backtrack(assignment)
 
     def assignment_is_complete(self, assignment):
-        for key, value in assignment.items(): #If assignment is complete
+        """
+        Returns True if every variable of the CSP-problem only has one possible 
+        value in it's domain. Otherwise it returns False
+        """
+        for key, value in assignment.items(): 
             if len(value) != 1: 
                 return False
         return True
@@ -121,32 +125,33 @@ class CSP:
         assignments and inferences that took place in previous
         iterations of the loop.
         """
-        #Denne har vi implementert
         #increase bactrack-call number by one
         self.backtrack_calls += 1
 
+        #if assigment is complete we have found a solution to our CSP-problem
         if self.assignment_is_complete(assignment):
             return assignment
 
+        #var becomes a unassigned variable
         var = self.select_unassigned_variable(assignment)
+
+        #we visit every possible value in the domain of variable var and assign it to val
         for val in assignment[var]:
             assignment_copy = copy.deepcopy(assignment)
             assignment_copy[var] = [val]
-            edges = self.get_all_arcs()
+            #edges becomes a list of tuples of all arcs neighbour to variable var
+            edges = self.get_all_neighboring_arcs(var)
             if self.inference(assignment_copy, edges):
                 #inference returns true for the edges so we recursively backtrack
                 #increase success number by one
                 self.successes += 1
                 result = self.backtrack(assignment_copy)
+                #if result is a non-empty dictionary we return it
                 if result: return result
         
         #increase fail number by one
         self.failures += 1
-        return {}
-            
-
-
-        
+        return {}        
 
     def select_unassigned_variable(self, assignment):
         """The function 'Select-Unassigned-Variable' from the pseudocode
@@ -154,9 +159,9 @@ class CSP:
         in 'assignment' that have not yet been decided, i.e. whose list
         of legal values has a length greater than one.
         """
-        #Denne har vi implementert
+        #we return any unassigned variable. A variable is unassigned if the number of values it can take is higher than 1
         for key,value in assignment.items():
-            if len(value) > 1: #samme hvilken det er
+            if len(value) > 1:
                 return key
 
     def inference(self, assignment, queue):
@@ -165,13 +170,18 @@ class CSP:
         the lists of legal values for each undecided variable. 'queue'
         is the initial queue of arcs that should be visited.
         """
-        #et eller annet sted trenger vi deep copy av assignment
+        
         while queue:
+            #AC-3 pops off an arbitrary arc (i, j) from the queue
             i, j = queue.pop(0)
+            #revise returns true if and only if we change (revise) the domain of i
             if self.revise(assignment, i, j):
+                #if domain of variable i is empty, we do not change it and return False
                 if not assignment[i]:
                     return False
-                for k, var in self.get_all_neighboring_arcs(i): #litt usikker på om dette er riktig
+                #we iterate over every neighbouring arc of variable i and add it to queue, the list of arcs that should be visited
+                for k, var in self.get_all_neighboring_arcs(i):
+                    #do not add to queue if k = j, i.e. it is the arc we just visited
                     if k != j:
                         queue.append((k, i))
         return True
@@ -185,19 +195,25 @@ class CSP:
         between i and j, the value should be deleted from i's list of
         legal values in 'assignment'.
         """
-        
+        #initially we have not revised the domain of i
         revised = False
+        #we visit every possible value in the domain of i
         for x in assignment[i]:
+            #get all possible pairs of the value of x and the domain of variable j as a list of tuples
             edges = list(self.get_all_possible_pairs(x,assignment[j]))
             tmp = True
+            #iterate over every possible pair stored as edge
             for edge in edges:
+                #if edge exists as one of the constraints in the csp problem we do not want to revise it
                 if edge in self.constraints[i][j]:
                     tmp = False
+            #if edge do not exist as a constraint, 
+            # we can safely remove the current domain-value x from our list of possible domain-values for variable i
+            # then variable i is also revised. i.e we have shrunk the domain of possible values for variable i
             if tmp:
                 revised = True
                 if x in assignment[i]:
-                    assignment[i].remove(x)
-                
+                    assignment[i].remove(x)        
         return revised
 
 
@@ -264,8 +280,7 @@ def print_sudoku_solution(solution):
             print('------+-------+------')
 
 def main():
-    create_map_coloring_csp()
-    name_to_path = {'Easy' : 'O4/easy.txt', 'Medium' : 'O4/medium.txt', 'Hard' : 'O4/hard.txt', 'Very Hard' : 'O4/veryhard.txt'}
+    name_to_path = {'Easy' : 'easy.txt', 'Medium' : 'medium.txt', 'Hard' : 'hard.txt', 'Very Hard' : 'veryhard.txt'}
     for name in name_to_path:
         curr_file = name_to_path[name]
         csp = create_sudoku_csp(curr_file)
