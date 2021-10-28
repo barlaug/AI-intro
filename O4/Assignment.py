@@ -115,8 +115,9 @@ class CSP:
         iterations of the loop.
         """
         #Denne har vi implementert
-        if assignment_is_complete(assignment):
+        if self.assignment_is_complete(assignment):
             return assignment
+        
 
     def select_unassigned_variable(self, assignment):
         """The function 'Select-Unassigned-Variable' from the pseudocode
@@ -135,17 +136,14 @@ class CSP:
         the lists of legal values for each undecided variable. 'queue'
         is the initial queue of arcs that should be visited.
         """
-
-        #et eller annet sted trenger vi deep copy av assignment
-        assignment_copy = copy.deepcopy(assignment)
-        while len(queue):
-            (x_i, x_j) = queue.pop()
-            if revise(assignment, x_i, x_j):
-                if len(self.domains[x_i]) == 0:
+        while len(queue) != 0:
+            x_i, x_j = queue.pop()
+            if self.revise(assignment, x_i, x_j):
+                if len(assignment[x_i]) == 0:
                     return False
-                for x_k in get_all_neighboring_arcs(x_i):
+                for x_k in self.get_all_neighboring_arcs(x_i): #litt usikker på om dette er riktig
                     if x_k != x_j:
-                        queue.append((x_k, x_i)) #skulle man brukt en av de utleverte func her?
+                        queue.append((x_k, x_i))
         return True
 
     def revise(self, assignment, i, j):
@@ -159,10 +157,10 @@ class CSP:
         """
         #gjort no greier her og
         revised = False
-        for x in self.domains[i]:
-            for y in self.domains[j]:
+        for x in assignment[i]:
+            for y in assignment[j]:
                 if len(self.constraints[x][y]) == 0:
-                    self.domains[i].remove(x)
+                    assignment[i].remove(x)
                     revised = True
         return revised
 
@@ -229,6 +227,25 @@ def print_sudoku_solution(solution):
             print('------+-------+------')
 
 def main():
-    create_map_coloring_csp()
+    """
+    solution_csp = create_sudoku_csp('easy.txt')
+    solution = solution_csp.backtracking_search()
+    print_sudoku_solution(solution)
+    """
 
-main()
+    #denne er kopiert
+    # Print results
+    for filename in ("easy", "medium", "hard", "veryhard", "extreme", "worldshardest"):
+    # for filename in ("easy", "medium", "hard", "veryhard"):
+        print(f"\n --- {filename.capitalize()} --- ")
+        for default_order in (False, True):
+            csp = create_sudoku_csp(f"{filename}.txt")
+            solution = csp.backtracking_search(default_order=default_order)
+            print(f"Default order = {default_order}")
+            print(f"Number of calls to backtrack: {csp._backtrack_calls}")
+            print(f"Number of backtrack failures: {csp._failures}")
+            print_sudoku_solution(solution)
+
+
+if __name__ == "__main__":
+    main()
