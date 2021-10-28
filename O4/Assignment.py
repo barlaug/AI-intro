@@ -14,6 +14,13 @@ class CSP:
         # the variable pair (i, j)
         self.constraints = {}
 
+        ##Variables to keep track of the success and failure count:
+        self.successes = 0
+        self.failures = 0
+
+        ##We also keep track of how many times backtrack() is called:
+        self.backtrack_calls = 0
+
     def add_variable(self, name, domain):
         """Add a new variable to the CSP. 'name' is the variable name
         and 'domain' is a list of the legal values for the variable.
@@ -115,8 +122,31 @@ class CSP:
         iterations of the loop.
         """
         #Denne har vi implementert
-        if assignment_is_complete(assignment):
+        #increase bactrack-call number by one
+        self.backtrack_calls += 1
+
+        if self.assignment_is_complete(assignment):
             return assignment
+
+        var = self.select_unassigned_variable(assignment)
+        for val in assignment[var]:
+            assignment_copy = copy.deepcopy(assignment)
+            assignment_copy[var] = [val]
+            edges = self.get_all_arcs()
+            if self.inference(assignment_copy, edges):
+                #inference returns true for the edges so we recursively backtrack
+                #increase success number by one
+                self.successes += 1
+                result = self.backtrack(assignment_copy)
+                if result: return result
+        
+        #increase fail number by one
+        self.failures += 1
+        return {}
+            
+
+
+        
 
     def select_unassigned_variable(self, assignment):
         """The function 'Select-Unassigned-Variable' from the pseudocode
@@ -126,7 +156,7 @@ class CSP:
         """
         #Denne har vi implementert
         for key,value in assignment.items():
-            if len(value) > 1:
+            if len(value) > 1: #samme hvilken det er
                 return key
 
     def inference(self, assignment, queue):
@@ -135,17 +165,15 @@ class CSP:
         the lists of legal values for each undecided variable. 'queue'
         is the initial queue of arcs that should be visited.
         """
-
         #et eller annet sted trenger vi deep copy av assignment
-        assignment_copy = copy.deepcopy(assignment)
-        while len(queue):
-            (x_i, x_j) = queue.pop()
-            if revise(assignment, x_i, x_j):
-                if len(self.domains[x_i]) == 0:
+        while queue:
+            i, j = queue.pop(0)
+            if self.revise(assignment, i, j):
+                if not assignment[i]:
                     return False
-                for x_k in get_all_neighboring_arcs(x_i):
-                    if x_k != x_j:
-                        queue.append((x_k, x_i)) #skulle man brukt en av de utleverte func her?
+                for k, var in self.get_all_neighboring_arcs(i): #litt usikker på om dette er riktig
+                    if k != j:
+                        queue.append((k, i))
         return True
 
     def revise(self, assignment, i, j):
@@ -157,14 +185,21 @@ class CSP:
         between i and j, the value should be deleted from i's list of
         legal values in 'assignment'.
         """
-        #gjort no greier her og
+        
         revised = False
-        for x in self.domains[i]:
-            for y in self.domains[j]:
-                if len(self.constraints[x][y]) == 0:
-                    self.domains[i].remove(x)
-                    revised = True
+        for x in assignment[i]:
+            edges = list(self.get_all_possible_pairs(x,assignment[j]))
+            tmp = True
+            for edge in edges:
+                if edge in self.constraints[i][j]:
+                    tmp = False
+            if tmp:
+                revised = True
+                if x in assignment[i]:
+                    assignment[i].remove(x)
+                
         return revised
+
 
 
 def create_map_coloring_csp():
@@ -230,5 +265,14 @@ def print_sudoku_solution(solution):
 
 def main():
     create_map_coloring_csp()
+    name_to_path = {'Easy' : 'O4/easy.txt', 'Medium' : 'O4/medium.txt', 'Hard' : 'O4/hard.txt', 'Very Hard' : 'O4/veryhard.txt'}
+    for name in name_to_path:
+        curr_file = name_to_path[name]
+        csp = create_sudoku_csp(curr_file)
+        answer = csp.backtracking_search()
+        print(f'{name}:')
+        print_sudoku_solution(answer)
+        print(f'Solved with {csp.failures} failures, and {csp.successes} successes, with {csp.backtrack_calls} calls to the backtrack() function')
+        print('___________________________________________________________________________________\n')
 
 main()
