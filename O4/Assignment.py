@@ -117,7 +117,22 @@ class CSP:
         #Denne har vi implementert
         if self.assignment_is_complete(assignment):
             return assignment
-        
+        var = self.select_unassigned_variable(assignment)
+        for value in self.order_domain_values(var, assignment):
+            #make a deepcopy of assignment
+            assignment_copy = copy.deepcopy(assignment)
+            #we need to add var = value to assignment_copy
+            assignment_copy[var] = [value]
+            inferences = self.inference(assignment_copy, self.get_all_neighboring_arcs(var))
+            if inferences:
+                result = self.backtrack(assignment_copy)
+                if result:
+                    return result
+        return {}
+            
+    
+    def order_domain_values(self, var, assignment):
+        return assignment[var]
 
     def select_unassigned_variable(self, assignment):
         """The function 'Select-Unassigned-Variable' from the pseudocode
@@ -158,10 +173,11 @@ class CSP:
         #gjort no greier her og
         revised = False
         for x in assignment[i]:
-            for y in assignment[j]:
-                if len(self.constraints[x][y]) == 0:
-                    assignment[i].remove(x)
-                    revised = True
+            arcs = list(self.get_all_possible_pairs([x], assignment[j]))
+            #for y in assignment[j]:
+            if len(list(filter(lambda arc: arc in arcs, self.constraints[i][j]))) < 1:
+                assignment[i].remove(x)
+                revised = True
         return revised
 
 
@@ -238,13 +254,13 @@ def main():
     for filename in ("easy", "medium", "hard", "veryhard", "extreme", "worldshardest"):
     # for filename in ("easy", "medium", "hard", "veryhard"):
         print(f"\n --- {filename.capitalize()} --- ")
-        for default_order in (False, True):
-            csp = create_sudoku_csp(f"{filename}.txt")
-            solution = csp.backtracking_search(default_order=default_order)
-            print(f"Default order = {default_order}")
-            print(f"Number of calls to backtrack: {csp._backtrack_calls}")
-            print(f"Number of backtrack failures: {csp._failures}")
-            print_sudoku_solution(solution)
+        #for default_order in (False, True):
+        csp = create_sudoku_csp(f"{filename}.txt")
+        solution = csp.backtracking_search()
+            #print(f"Default order = {default_order}")
+            #print(f"Number of calls to backtrack: {csp._backtrack_calls}")
+            #print(f"Number of backtrack failures: {csp._failures}")
+        print_sudoku_solution(solution)
 
 
 if __name__ == "__main__":
