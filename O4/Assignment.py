@@ -137,6 +137,8 @@ class CSP:
 
         #we visit every possible value in the domain of variable var and assign it to val
         for val in assignment[var]:
+            #we make a deep copy of assignments because we want do not want to see any of the
+            #  changes made in the previous iterations of the loop
             assignment_copy = copy.deepcopy(assignment)
             assignment_copy[var] = [val]
             #edges becomes a list of tuples of all arcs neighbour to variable var
